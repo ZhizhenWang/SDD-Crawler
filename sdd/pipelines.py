@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import pymongo
-from sdd.items import SddItem, ReportItem, OrgItem
 from scrapy.exceptions import DropItem
+
+from sdd.items import SddItem, ReportItem, OrgItem
 
 
 # Define your item pipelines here

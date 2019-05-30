@@ -1,9 +1,11 @@
-import scrapy
-from scrapy import Selector
-from scrapy.http import FormRequest, Request
 import json
 from urllib.parse import urljoin
+
 import requests
+import scrapy
+from scrapy import Selector
+from scrapy.http import Request
+
 from sdd.items import SddItem, OrgItem, ReportItem
 
 
