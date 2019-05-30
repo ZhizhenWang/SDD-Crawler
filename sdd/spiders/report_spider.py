@@ -69,14 +69,47 @@ class ReportSpider(scrapy.Spider):
         report_name = response.xpath('//h1/text()').get()
         repitem['report_id'] = response.meta['id']
         repitem['report_name'] = report_name
-        pairs = []
-        for tmp in response.css('li[class=list-group-item]'):
-            row_text = tmp.xpath('normalize-space(string(.))').get()
-            pairs.append([x.strip() for x in row_text.rsplit(':', 1)])
-        repitem.update(pairs)
+
+        keyselectors = response.css('li[class=list-group-item] span[class=text-slim]')
+        keys = [key[:-1] for key in keyselectors.css('::text').getall()]
+        values = list(get_values(keyselectors))
+
+        assert len(keys) == len(values)
+        repitem.update(zip(keys, values))
 
         return repitem
 
+def get_values(keyselectors):
+    """
+    helper function of parse_rep to extract the value
+    :param keyselectors: <li> tag selectors
+    :return: values generator
+    """
+    for keyselector in keyselectors:
+        raw_values = keyselector.xpath('following-sibling::node()').getall()
+        # get rid of space and return character
+        value = [raw.strip() for raw in raw_values if raw.strip()]
+        # no value exist in table
+        if not value:
+            yield None
+        else:
+            # get the only value
+            value = value[0]
+            valueselector = Selector(text=value)
+            # value is pure text
+            if valueselector.xpath('boolean(//span)').get() == '0':
+                yield value
+            # value within span class or tag
+            else:
+                classvalues = valueselector.xpath('//@class').get()
+                # span class indicates value
+                if 'glyphicon-ok' in classvalues:
+                    yield True
+                elif 'glyphicon-remove' in classvalues:
+                    yield False
+                # value wrapped in span tag
+                else:
+                    yield valueselector.xpath('//text()').get()
 
 def get_csrf():
     """
