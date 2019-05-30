@@ -33,9 +33,9 @@ class OrgItem(scrapy.Item):
     stock = scrapy.Field()
 
 
-class ReportItem(scrapy.Item):
-    report_id = scrapy.Field()
-    report_name = scrapy.Field()
-    pub_year = scrapy.Field()
-    report_type = scrapy.Field()
-    adherence = scrapy.Field()
+# class ReportItem(scrapy.Item):
+#     report_id = scrapy.Field()
+#     report_name = scrapy.Field()
+#     pub_year = scrapy.Field()
+#     report_type = scrapy.Field()
+#     adherence = scrapy.Field()

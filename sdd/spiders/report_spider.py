@@ -6,7 +6,7 @@ import scrapy
 from scrapy import Selector
 from scrapy.http import Request
 
-from sdd.items import SddItem, OrgItem, ReportItem
+from sdd.items import SddItem, OrgItem
 
 
 class ReportSpider(scrapy.Spider):
@@ -54,7 +54,6 @@ class ReportSpider(scrapy.Spider):
         # parse the organization callback
         orgitem = OrgItem()
         selectors = response.xpath('//li[@class="list-group-item"]/*[not (self::img)][2]')
-        # selectors = response.css('li :nth-child(2):not(img)')
         list_content = [selector.xpath('text()').get() if selector.xpath('text()') else None for selector in selectors]
 
         orgitem['org_id'] = response.meta['id']
@@ -65,22 +64,17 @@ class ReportSpider(scrapy.Spider):
 
     def parse_rep(self, response):
         # parse the report callback
-        repitem = ReportItem()
-
-        true_keys = ['Publication year:', 'Report type:', 'Adherence Level:']
-        store_keys = ['pub_year', 'report_type', 'adherence']
+        repitem = dict()
 
         report_name = response.xpath('//h1/text()').get()
         repitem['report_id'] = response.meta['id']
         repitem['report_name'] = report_name
-        keys = response.xpath('//li[@class="list-group-item"]/descendant::text()[normalize-space()][1]').getall()[:3]
-        values = response.xpath('//li[@class="list-group-item"]/descendant::text()[normalize-space()][last()]').getall()[:3]
+        pairs = []
+        for tmp in response.css('li[class=list-group-item]'):
+            row_text = tmp.xpath('normalize-space(string(.))').get()
+            pairs.append([x.strip() for x in row_text.rsplit(':', 1)])
+        repitem.update(pairs)
 
-        for i, (true_key, key) in enumerate(zip(true_keys, keys)):
-            if true_key == key:
-                repitem[store_keys[i]] = values[i]
-            else:
-                repitem[store_keys[i]] = None
         return repitem
 
 

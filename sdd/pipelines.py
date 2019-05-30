@@ -2,7 +2,7 @@
 import pymongo
 from scrapy.exceptions import DropItem
 
-from sdd.items import SddItem, ReportItem, OrgItem
+from sdd.items import SddItem, OrgItem
 
 
 # Define your item pipelines here
@@ -39,7 +39,10 @@ class MongoPipeline(object):
             self.db[self.collection_search].insert_one(dict(item))
         elif isinstance(item, OrgItem):
             self.db[self.collection_org].insert_one(dict(item))
-        elif isinstance(item, ReportItem):
+        else:
+            for k,v in item.items():
+                new_k = k.lower().replace(' ', '_')
+                item[new_k] = item.pop(k)
             self.db[self.collection_rep].insert_one(dict(item))
         return item
 
@@ -58,12 +61,12 @@ class DuplicatesPipeline(object):
                 self.org_seen.add(item['org_id'])
                 replace_str(item)
                 return item
-        elif isinstance(item, ReportItem):
-            if item['report_id'] in self.report_seen:
-                raise DropItem('Duplicated report found: {}'.format(item))
-            else:
-                self.report_seen.add(item['report_id'])
-                return item
+        # elif isinstance(item, ReportItem):
+        #     if item['report_id'] in self.report_seen:
+        #         raise DropItem('Duplicated report found: {}'.format(item))
+        #     else:
+        #         self.report_seen.add(item['report_id'])
+        #         return item
         else:
             return item
 
